@@ -5,7 +5,7 @@ Here's an example which optimizes for construction the imaginary economy with on
 
 ![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/4800dfa3-b6da-4e8d-bb52-85a7fe3cef92)
 
-...And a comparison between the results given by this program compared to the example in Generalist Gaming's spreadsheet
+...And a comparison between the results given by this program compared to the example in Generalist Gaming's spreadsheet. As you can see, you can make the numbers go up! (Equi. Effic. aren't exactly equal since I rounded them to one decimal)
 
 ![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/85f3cf9f-b56d-4d8e-8eaf-53a05fe2d731)
 
