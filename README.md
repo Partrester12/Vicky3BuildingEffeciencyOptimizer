@@ -38,6 +38,9 @@ Click the 'OptimizeBuildings.ipynb' to open the file. You should be greeted with
 
 If you don't want to change any variables, select 'Run' from the menu at the top, select 'Run all cells', and scroll to the bottom of the notebook.
 
+**NEVER CLICK THE RUN-BUTTON WITH THE ICON**
+This button will simply run the currently selected cell instead of the whole program. Confusing, I know, but it is what it its...
+
 ![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/6fd92488-e038-4168-8f01-f43c5af35ab4)
 
 **Depending on the version of Juptyer Notebook, you might want to select 'Cell' from the top row instead of 'Run'**
