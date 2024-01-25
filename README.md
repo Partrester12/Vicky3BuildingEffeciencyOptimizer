@@ -1,4 +1,4 @@
-![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/6105daec-7114-4189-a4b5-bb14728e35be)# Vicky3 BuildingEffeciencyOptimizer (BEO for short)
+# Vicky3 BuildingEffeciencyOptimizer (BEO for short)
 Inspired by Generalist Gaming's spreadsheet, here's a program which can mathematically optimize the prices of goods instead of guessing numbers by hand in the spreadsheet!
 
 # In order for you to use this, you need to install Jupyter Notebook!!!
