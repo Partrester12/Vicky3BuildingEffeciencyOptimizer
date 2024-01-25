@@ -1,4 +1,4 @@
-# Vicky3 BuildingEffeciencyOptimizer (BEO for short)
+![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/6105daec-7114-4189-a4b5-bb14728e35be)# Vicky3 BuildingEffeciencyOptimizer (BEO for short)
 Inspired by Generalist Gaming's spreadsheet, here's a program which can mathematically optimize the prices of goods instead of guessing numbers by hand in the spreadsheet!
 
 # In order for you to use this, you need to install Jupyter Notebook!!!
@@ -36,7 +36,11 @@ Once you've edited the spreadsheet to match your game (remember to include all t
 
 Click the 'OptimizeBuildings.ipynb' to open the file. You should be greeted with a bunch of python code and comments. 
 
-If you don't want to change any variables, select 'Run' from the bar at the top, select 'Run all cells', and scroll to the bottom of the notebook.
+If you don't want to change any variables, select 'Run' from the menu at the top, select 'Run all cells', and scroll to the bottom of the notebook.
+
+![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/6fd92488-e038-4168-8f01-f43c5af35ab4)
+
+**Depending on the version of Juptyer Notebook, you might want to select 'Cell' from the top row instead of 'Run'**
 
 You should be presented with two tables. The first one is optimized for construction whilst the latter is optimized for number of labor.
 
