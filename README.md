@@ -71,4 +71,8 @@ Also take note that this program maximizes the **Net equlibrium efficiency** of 
 
 Also take into consideration that MAPPY is not accounted for in these calculations, but regardless the prices given by this program should be 'close' to optimal
 
+# Step 5 Notes and bugs
+
+Here's a few tips and tricks for editing the spreadsheet whilst the program isn't finished. If you want to add for example sub farms or gove centers, which you obviously cannot build yourself, then just set the construction value to like 10000 or something very large, so that the construction efficiency won't get warped by these buildings.
+
 # (Link to Generalit Gaming's spreadsheet: https://docs.google.com/spreadsheets/d/1NDUwUWHlNuQTWMejK0Agv8gC3fn6ujiXKE9WfVmjFBc/edit#gid=0)
