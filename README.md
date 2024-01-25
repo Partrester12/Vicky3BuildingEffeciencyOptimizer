@@ -1,6 +1,11 @@
 # Vicky3 BuildingEffeciencyOptimizer (BEO for short)
 Inspired by Generalist Gaming's spreadsheet, here's a program which can mathematically optimize the prices of goods instead of guessing numbers by hand in the spreadsheet!
 
+Here's an example which optimizes for construction the imaginary economy with only Logging camp on Sawmills, Iron and Coal mines on Condensing, Tooling workshop with Steel tools, and Steel mill with Blistering.
+
+![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/4800dfa3-b6da-4e8d-bb52-85a7fe3cef92)
+
+
 # In order for you to use this, you need to install Jupyter Notebook!!!
 But don't worry, it's not too complicated. Here's a link to a youtube tutorial if you're on Windows and have never used conda before: https://www.youtube.com/watch?v=WUeBzT43JyY
 Note that you only need to watch like the first 5 minutes or so if you only care about running this program.
