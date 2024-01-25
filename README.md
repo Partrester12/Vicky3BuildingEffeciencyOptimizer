@@ -47,6 +47,8 @@ If you want to edit the variables, then the only one worth editing is if you wan
 The equlibrium prices given by this program roughly equate to prices you want to have in your game, for your buildings to be optimally efficient.
 So for example if the optimal price for steel is +75%, then that means you don't want to build any more buildings producing steel than you have to.
 This doesn't mean it's bad to build more steel, since construction will be cheaper with cheaper steel, but it means that the buildings producing steel will be less profitable.
+Also take note that this program maximizes the **Net equlibrium efficiency** of all the buildings. This means that there are other equlibrium points, but the ones given by this program optimize the **net value** of all the selected buildings!
+
 ...Or this is how I understand it. Check out Generalist Gaming's video on the topic and figure for yourself what to do with this information!
 (https://www.youtube.com/watch?v=Jn1RbW4t-M8)
 
