@@ -43,7 +43,7 @@ Thus in the future if the community has begun using this, please expand the tabl
 # Step 3 Using the program
 Once you've edited the spreadsheet to match your game (remember to include all the buildings you want to have in your economy!), open Jupyter Notebook and locate the folder where you have the .ipynb file and the 'BuildingSheet.xlsx' file
 
-Click the 'OptimizeBuildings.ipynb' to open the file. You should be greeted with a bunch of python code and comments. 
+Click 'OptimizeBuildings.ipynb' to open the file. You should be greeted with a bunch of python code and comments. 
 
 If you don't want to change any variables, select 'Run' from the menu at the top, select 'Run all cells', and scroll to the bottom of the notebook.
 
@@ -56,7 +56,7 @@ This button will simply run the currently selected cell instead of the whole pro
 
 You should be presented with two tables. The first one is optimized for construction whilst the latter is optimized for number of labor.
 
-If you want to edit the variables, then the only one worth editing is if you want to change the amount of per pops you're optimizing for as the default is per 100 pops.
+If you want to edit the variables, then the only one worth editing is the amount of 'per pops' you're optimizing for as the default is per 100 pops.
 
 # Step 4 What do I do with this information?
 
