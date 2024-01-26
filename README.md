@@ -1,4 +1,4 @@
-# Vicky3 BuildingEffeciencyOptimizer (BEO for short)
+# Vicky3 BuildingEfficiencyOptimizer (BEO for short)
 Inspired by Generalist Gaming's spreadsheet, here's a program which can mathematically optimize the prices of goods instead of guessing numbers by hand in the spreadsheet!
 
 Here's an example which optimizes for construction the imaginary economy with only Logging camp on Sawmills, Iron and Coal mines on Condensing, Tooling workshop with Steel tools, and Steel mill with Blistering.
@@ -24,7 +24,7 @@ Note that for this program to work, we only need the .xlsx file and the .ipynb f
 # Step 2 Editing the excel sheet
 Open up 'BuildingSheet.xlsx'. In there you will find the few lines included by default and written by yours truly as examples.
 
-The sheet constists of a few important columns:
+The sheet consists of a few important columns:
 - Building, PM, Labor saving PM, and Transportation PM ar all cosmetic to make it easier to know what each row represents. You can edit these freely
 - Included should be 1 if you want to include this building in your calculations, 0 if not. I recommend only having one building for each PM active (so don't include both Logging camp with Steam Donk and Logging camp without Steam Donk at the same time). The program will work regardless, but it's up to you to figure out what you're optimizing at that point!
 - TBonus is the throughput bonus affecting a type of building. This can be from companies, economies of scale etc. This WILL affect the optimal prizes
@@ -33,7 +33,7 @@ The sheet constists of a few important columns:
 
 Then there are the most important columns
 - Inp-prefix represents all the inputs for a type of building with selected PMs. You can find these values from Generalist Gaming's spreadsheet. Note that you cannot leave any cell in a row empty for this program to work!!!!!
-- Out-prefix represents all the outputs for a type of building wiht selected PMs. You can find these values from Generalist Gaming's spreadsheet. Note that you cannot leave any cell in a row empty for this program to work!!!!!
+- Out-prefix represents all the outputs for a type of building with selected PMs. You can find these values from Generalist Gaming's spreadsheet. Note that you cannot leave any cell in a row empty for this program to work!!!!!
 
 Also keep in mind that the output and input goods MUST be in the same exact order as shown in the examples. Otherwise you're gonna get wonky results!!
 
@@ -60,19 +60,19 @@ If you want to edit the variables, then the only one worth editing is if you wan
 
 # Step 4 What do I do with this information?
 
-The equlibrium prices given by this program roughly equate to prices you want to have in your game, for your buildings to be optimally efficient.
+The equilibrium prices given by this program roughly equate to prices you want to have in your game, for your buildings to be optimally efficient.
 So for example if the optimal price for steel is +75%, then that means you don't want to build any more buildings producing steel than you have to.
 This doesn't mean it's bad to build more steel, since construction will be cheaper with cheaper steel, but it means that the buildings producing steel will be less profitable.
 
 ...Or this is how I understand it. Check out Generalist Gaming's video on the topic and figure for yourself what to do with this information!
 (https://www.youtube.com/watch?v=Jn1RbW4t-M8)
 
-Also take note that this program maximizes the **Net equlibrium efficiency** of all the buildings. This means that there are other equlibrium points, but the ones given by this program optimize the **net value** of all the selected buildings!
+Also take note that this program maximizes the **Net equilibrium efficiency** of all the buildings. This means that there are other equilibrium points, but the ones given by this program optimize the **net value** of all the selected buildings!
 
 Also take into consideration that MAPPY is not accounted for in these calculations, but regardless the prices given by this program should be 'close' to optimal
 
 # Step 5 Notes and bugs
 
-Here's a few tips and tricks for editing the spreadsheet whilst the program isn't finished. If you want to add for example sub farms or gove centers, which you obviously cannot build yourself, then just set the construction value to like 10000 or something very large, so that the construction efficiency won't get warped by these buildings.
+Here's a few tips and tricks for editing the spreadsheet whilst the program isn't finished. If you want to add for example sub farms or gov centers, which you obviously cannot build yourself, then just set the construction value to like 10000 or something very large, so that the construction efficiency won't get warped by these buildings.
 
-# (Link to Generalit Gaming's spreadsheet: https://docs.google.com/spreadsheets/d/1NDUwUWHlNuQTWMejK0Agv8gC3fn6ujiXKE9WfVmjFBc/edit#gid=0)
+# (Link to Generalist Gaming's spreadsheet: https://docs.google.com/spreadsheets/d/1NDUwUWHlNuQTWMejK0Agv8gC3fn6ujiXKE9WfVmjFBc/edit#gid=0)
