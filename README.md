@@ -69,7 +69,7 @@ This doesn't mean it's bad to build more steel, since construction will be cheap
 
 Also take note that this program maximizes the **Net equilibrium efficiency** of all the buildings. This means that there are other equilibrium points, but the ones given by this program optimize the **net value** of all the selected buildings!
 
-Also take into consideration that MAPPY is not accounted for in these calculations, but regardless the prices given by this program should be 'close' to optimal
+Also take into consideration that MAPI is not accounted for in these calculations, but regardless the prices given by this program should be 'close' to optimal
 
 # Step 5 Notes and bugs
 
