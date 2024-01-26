@@ -75,6 +75,10 @@ Also take into consideration that MAPI is not accounted for in these calculation
 
 Here's a few tips and tricks for editing the spreadsheet whilst the program isn't finished. 
 
-If you want to add for example sub farms or gov centers, which you obviously cannot build yourself, then just set the construction value to like 10000 or something very large, so that the construction efficiency won't get warped by these buildings.
+Currently in the process of migriting from the linear solver to a non-linear solver. A known massive issue atm is that if you include more than 20 buildings, since there's like hundreds of constraints, some of them result in non-linearities that break the current optimizer (Lookign at you Railways....).
+
+The current program still works for any set of 10-20 buildings, just don't include Railways, Urban centers or Powerplants. Also highly recommend not having all plantations with auto irrigation, since the engine consumption is so massive compared to outputs (or so my theory goes)
+
+These issues **should** be fixed after I dabble into other optimizers and do some more maths!
 
 # (Link to Generalist Gaming's spreadsheet: https://docs.google.com/spreadsheets/d/1NDUwUWHlNuQTWMejK0Agv8gC3fn6ujiXKE9WfVmjFBc/edit#gid=0)
