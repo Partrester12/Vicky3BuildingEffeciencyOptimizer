@@ -1,2 +1,6 @@
 .ipynb_checkpoints
 *.~lock
+OptimizedPrices.xlsx
+build
+dist
+*.spec
