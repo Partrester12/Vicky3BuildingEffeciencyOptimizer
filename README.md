@@ -1,6 +1,8 @@
 # Vicky3 BuildingEfficiencyOptimizer (BEO for short)
 Inspired by Generalist Gaming's spreadsheet, here's a program which can mathematically optimize the prices of goods instead of guessing numbers by hand in the spreadsheet!
 
+# If you don't want to edit the program or touch the code, then download the latest version of the program here and read the instructions included (https://www.mediafire.com/file/i0kl1a85a2e7ysc/Vicky3_BEO.zip/file)
+
 Here's an example which optimizes for construction the imaginary economy with only Logging camp on Sawmills, Iron and Coal mines on Condensing, Tooling workshop with Steel tools, and Steel mill with Blistering.
 
 ![kuva](https://github.com/Partrester12/Vicky3BuildingEffeciencyOptimizer/assets/49076600/4800dfa3-b6da-4e8d-bb52-85a7fe3cef92)
