@@ -58,7 +58,7 @@ This button will simply run the currently selected cell instead of the whole pro
 
 You should be presented with two tables. The first one is optimized for construction whilst the latter is optimized for number of labor.
 
-If you want to edit the variables, then the only one worth editing is the amount of 'per pops' you're optimizing for as the default is per 100 pops.
+If you want to edit the variables, then the only ones worth editing are the amount of 'per pops' you're optimizing for as the default is per 100 pops as well as MAX_NUMBER_ITERARTIONS, which controls how long the program will try to calculate optimal prices in cases where optimization is difficult (or close to impossible with common PCs) .
 
 # Step 4 What do I do with this information?
 
@@ -75,12 +75,8 @@ Also take into consideration that MAPI is not accounted for in these calculation
 
 # Step 5 Notes and bugs
 
-Here's a few tips and tricks for editing the spreadsheet whilst the program isn't finished. 
+The program does support calculations involving gov centers, but I highly recommend that you take those results with a huga grain of salt. This is due to the fact that you can't construct them and thus they break calculations somewhat.
 
-Currently in the process of migriting from the linear solver to a non-linear solver. A known massive issue atm is that if you include more than 20 buildings, since there's like hundreds of constraints, some of them result in non-linearities that break the current optimizer (Lookign at you Railways....).
-
-The current program still works for any set of 10-20 buildings, just don't include Railways, Urban centers or Powerplants. Also highly recommend not having all plantations with auto irrigation, since the engine consumption is so massive compared to outputs (or so my theory goes)
-
-These issues **should** be fixed after I dabble into other optimizers and do some more maths!
+Also be patient with getting results. If you think it's taking way too long to get your 'OptimizedPrices.xlsx' consitantly, then either follow the instructions and edit the .ipynb -file or let me know and I can create a version of the program that uses significantly less computing power (though keep in mind that the results will also be worse!)
 
 # (Link to Generalist Gaming's spreadsheet: https://docs.google.com/spreadsheets/d/1NDUwUWHlNuQTWMejK0Agv8gC3fn6ujiXKE9WfVmjFBc/edit#gid=0)
