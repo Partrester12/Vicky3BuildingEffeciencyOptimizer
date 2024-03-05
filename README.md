@@ -27,7 +27,7 @@ Note that for this program to work, we only need the .xlsx file and the .ipynb f
 Open up 'BuildingSheet.xlsx'. In there you will find the few lines included by default and written by yours truly as examples.
 
 The sheet consists of a few important columns:
-- Building, PM, Labor saving PM, and Transportation PM ar all cosmetic to make it easier to know what each row represents. You can edit these freely
+- Building, PM, and the three Optional PMs ar all cosmetic to make it easier to know what each row represents. You can edit these freely
 - Included should be 1 if you want to include this building in your calculations, 0 if not. I recommend only having one building for each PM active (so don't include both Logging camp with Steam Donk and Logging camp without Steam Donk at the same time). The program will work regardless, but it's up to you to figure out what you're optimizing at that point!
 - TBonus is the throughput bonus affecting a type of building. This can be from companies, economies of scale etc. This WILL affect the optimal prizes
 - ConBonus is the construction bonus affecting a type of building. Usually useful if you want to optimize when having specific companies. This WILL affect the optimal prizes
@@ -37,7 +37,7 @@ Then there are the most important columns
 - Inp-prefix represents all the inputs for a type of building with selected PMs. You can find these values from Generalist Gaming's spreadsheet. Note that you cannot leave any cell in a row empty for this program to work!!!!!
 - Out-prefix represents all the outputs for a type of building with selected PMs. You can find these values from Generalist Gaming's spreadsheet. Note that you cannot leave any cell in a row empty for this program to work!!!!!
 
-Also keep in mind that the output and input goods MUST be in the same exact order as shown in the examples. Otherwise you're gonna get wonky results!!
+The input- and output goods are ordered alphabetically. Keep in mind that the output and input goods MUST be in the same exact order as shown in the examples. Otherwise you're gonna get wonky results!!
 
 And as you might guess, adding all your buildings to this by yourself is a herculean task. 
 Thus in the future if the community has begun using this, please expand the table and contact me on discord (username: partrester12) so that I can update the default table in the repo!
