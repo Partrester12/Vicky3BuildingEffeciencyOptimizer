@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[1139]:
 
 
 from scipy.optimize import linprog
@@ -17,7 +17,7 @@ from mystic.monitors import VerboseMonitor
 from openpyxl import load_workbook
 
 
-# In[2]:
+# In[1140]:
 
 
 # IF YOU DON'T WANT TO EDIT ANYTHING, THEN JUST PRESS 'RUN' AT THE TOP BAR, SELECT 'RUN ALL CELLS', AND SCROLL TO THE BOTTOM FOR RESULTS!!
@@ -27,6 +27,10 @@ from openpyxl import load_workbook
 
 BASEPRICES = [100, 60, 30, 30, 50, 40, 30, 60, 50, 20, 30, 200, 20, 30, 30, 40, 20, 30, 40, 40, 40, 30, 60, 60, 30, 40, 50, 30, 70, 80, 40, 30, 40, 20, 70, 50, 30, 50, 50, 70, 40, 40, 30, 50]
 
+con_try = BASEPRICES
+
+lab_try = BASEPRICES
+
 MAXPRICES = (np.array(BASEPRICES)*1.75).astype(int).tolist()
 
 GOODSNAMES = ["Soft wood","Hard wood","Iron","Coal","Tools","Steel","Fertilizer","Dye","Glass","Lead","Oil","Rubber","Silk","Explosives","Sulfur","Clippers","Engines","Steamers","Automobiles","Coffee","Fine art","Fruit","Liqour","Luxury clothes","Luxury furniture","Meat","Opium","Porcelain","Radios","Sugar","Tea","Telephones","Tobacco","Wine","Electricity","Services","Transportation","Paper","Groceries","Grain","Furniture","Fish","Fabric","Clothes"]
@@ -34,10 +38,10 @@ GOODSNAMES = ["Soft wood","Hard wood","Iron","Coal","Tools","Steel","Fertilizer"
 GOODSNAMES.sort()
 
 #This is the one exception! Change this if you feel like results are taking FOREVER
-MAX_NUMBER_ITERATIONS = 30000
+MAX_NUMBER_ITERATIONS = 10000
 
 
-# In[3]:
+# In[1141]:
 
 
 #Import the Excel sheet containing the buildings/PMs used to produce each good
@@ -49,9 +53,20 @@ df = data[data['Included'].astype(str).str.contains("1")]
 
 #print(df)
 
+#New testing with 'looping' solutions as new starting points
+
+try:
+    data_con = pd.read_excel("OptimizedPrices.xlsx", "Optimized for construction")
+    con_try = data_con['Optimal price per construction'].astype(float).values.tolist()
+
+    data_lab = pd.read_excel("OptimizedPrices.xlsx", "Optimized for labor")
+    lab_try = data_lab['Optimal price per labor'].astype(float).values.tolist()
+
+except:
+    print("No existing file found, continuing with base prices as initial guesses in case linear optimization cannot be performed")
 
 
-# In[4]:
+# In[1142]:
 
 
 #Construct the matrices needed for creating our linear minimizing problem (maths stuff)
@@ -84,7 +99,7 @@ df_out=df.filter(like='Out', axis=1)
 t_bonuses=1+df['TBonus'].values
 
 
-# In[5]:
+# In[1143]:
 
 
 #Code for the function which preps all the math so that we can perform optimization!
@@ -133,7 +148,7 @@ def optimization_function(scalar_factors, inp, out, tbonus):
     return c, A, rhs
 
 
-# In[6]:
+# In[1144]:
 
 
 #Calling the function for both construction and labor! Feel free to comment the other out if you're not insterested in the results
@@ -143,7 +158,7 @@ c_con, A_con, rhs_con = optimization_function(scalar_factors_construction, df_in
 c_lab, A_lab, rhs_lab = optimization_function(scalar_factors_labor, df_inp, df_out, t_bonuses)
 
 
-# In[7]:
+# In[1145]:
 
 
 #Creating the bounds for each good
@@ -158,7 +173,7 @@ for bp in BASEPRICES:
 #print(boundaries)
 
 
-# In[8]:
+# In[1146]:
 
 
 #Linear optimization if it's possible!
@@ -177,7 +192,7 @@ lab_result=res_lab.x
 
 
 
-# In[9]:
+# In[1147]:
 
 
 #Transforming a row in an A-matrix to be usable by mystic as constraints
@@ -200,7 +215,7 @@ lab_result=res_lab.x
 #    return first, x
 
 
-# In[10]:
+# In[1148]:
 
 
 #Constraints for mystic - This is all deprecated as the amount of constraints bricks the solver on normal PCs
@@ -236,7 +251,7 @@ lab_result=res_lab.x
 
 
 
-# In[11]:
+# In[1149]:
 
 
 #Initializing problem and variables (this is from an old try at PULP... Just so happens that the dictionary is useful!)
@@ -279,26 +294,28 @@ if not res_con.success:
     #And because we formed the objective function by adding together things multiplied by lcm, we need to also divide an additional amount
     c_con=np.divide(c_con, con_lcm*len(t_bonuses))
     #Trying global optimization
-    con_result = diffev2(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=con_mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+    con_result = diffev2(con_objective, x0=con_try, bounds=boundaries, penalty=mystic_penalty_con, itermon=con_mon, npop=500, maxiter=MAX_NUMBER_ITERATIONS, ftol=1e-8)
 
 #If global optimization is not possible for one reason or another, try and brute force the best possible solution in a reasonable time frame
 
 k=False
 
-if(len(con_result)==len(BASEPRICES)):
-    if(np.array_equal(con_result, BASEPRICES)):
+if(len(con_result)==len(con_try)):
+    if(np.array_equal(con_result, con_try)):
         print("Brute force")
-        con_result = fmin(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+        mon = VerboseMonitor(10)
+        con_result = fmin(con_objective, x0=con_try, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=500, maxf=MAX_NUMBER_ITERATIONS*5, maxiter=MAX_NUMBER_ITERATIONS*10, ftol=1e-7)
         k=True
 else:
     #If mystic bugs out and tries to pass some arbitrary values as optimal
     if(con_result[3]==0):
         print("Brute force")
-        con_result = fmin(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+        mon = VerboseMonitor(10)
+        con_result = fmin(con_objective, x0=con_try, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=500, maxf=MAX_NUMBER_ITERATIONS*5, maxiter=MAX_NUMBER_ITERATIONS*10, ftol=1e-7)
         k=True
 
 
-# In[12]:
+# In[1150]:
 
 
 #Same calcs for labor
@@ -335,26 +352,28 @@ if not res_lab.success:
     #And because we formed the objective function by adding together things multiplied by lcm, we need to also divide an additional amount
     c_lab=np.divide(c_lab, lab_lcm*len(t_bonuses))
     #Trying global optimization
-    lab_result = diffev2(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_lab, itermon=lab_mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+    lab_result = diffev2(lab_objective, x0=lab_try, bounds=boundaries, penalty=mystic_penalty_lab, itermon=lab_mon, npop=500, maxiter=MAX_NUMBER_ITERATIONS, ftol=1e-8)
 
 #If global optimization is not possible for one reason or another, try and brute force the best possible solution in a reasonable time frame
 
 j=False
 
-if(len(lab_result)==len(BASEPRICES)):
-    if(np.array_equal(lab_result, BASEPRICES)):
+if(len(lab_result)==len(lab_try)):
+    if(np.array_equal(lab_result, lab_try)):
         print("Brute force")
-        lab_result = fmin(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+        mon = VerboseMonitor(10)
+        lab_result = fmin(lab_objective, x0=lab_try, bounds=boundaries, penalty=mystic_penalty_lab, itermon=mon, npop=500, maxf=MAX_NUMBER_ITERATIONS*5, maxiter=MAX_NUMBER_ITERATIONS*10, ftol=1e-7)
         j=True
 else:
     #If mystic bugs out and tries to pass some arbitrary values as optimal
     if(lab_result[3]==0):
         print("Brute force")
-        lab_result = fmin(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+        mon = VerboseMonitor(10)
+        lab_result = fmin(lab_objective, x0=lab_try, bounds=boundaries, penalty=mystic_penalty_lab, itermon=mon, npop=500, maxf=MAX_NUMBER_ITERATIONS*5, maxiter=MAX_NUMBER_ITERATIONS*10, ftol=1e-7)
         j=True
 
 
-# In[13]:
+# In[1151]:
 
 
 #Making the optimal prices per construction more readable
@@ -376,7 +395,7 @@ if not res_con.success:
 readable_df.sort_values('Good')
 
 
-# In[14]:
+# In[1152]:
 
 
 #Making the optimal prices per labor more readable
@@ -401,7 +420,7 @@ if not res_lab.success:
 readable_df2.sort_values('Good')
 
 
-# In[15]:
+# In[1153]:
 
 
 #Writing the results into an Excel-sheet for the purposes of an .exe
@@ -431,26 +450,71 @@ workbook.save('OptimizedPrices.xlsx')
 if not res_con.success:
     workbook = load_workbook(filename='OptimizedPrices.xlsx')
     ws4 = workbook['Optimized for construction']
-    if k:
-        ws4.cell(row = 2, column = 9).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
+    #Adding a message to encourage running the program again!
+    if abs(con_objective(con_try)-con_objective(con_result)) > 0.005 or abs(con_penalty(con_try)-con_penalty(con_result)) > 0.005:
+            ws4.cell(row = 4, column = 9).value = "I recommend running the program again without touching the values in this sheet as further optimization can be done!"
     else:
-        ws4.cell(row = 2, column = 9).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
+        ws4.cell(row = 4, column = 9).value = "Further optimization might be possible, but would not yield significant results"
+    #If solution used brute force
+    if k:
+        ws4.cell(row = 2, column = 9).value = "Further optimization was unfortunately not possible and thus these prices are the best 'guesses' reasonably possible"
+    #If solution used diffenv2
+    else:
+        ws4.cell(row = 2, column = 9).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate in this round"
 
     workbook.save('OptimizedPrices.xlsx')
 
 if not res_lab.success:
     workbook = load_workbook(filename='OptimizedPrices.xlsx')
     ws4 = workbook['Optimized for labor']
-    if j:
-        ws4.cell(row = 2, column = 9).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
+    #Addint a message to encourage running the program again!
+    if abs(lab_objective(lab_try)-lab_objective(lab_result)) > 0.005 or abs(lab_penalty(lab_try)-lab_penalty(lab_result)) > 0.005:
+            ws4.cell(row = 4, column = 9).value = "I recommend running the program again without touching the values in this sheet as further optimization can be done!"
     else:
-        ws4.cell(row = 2, column = 9).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
+        ws4.cell(row = 4, column = 9).value = "Further optimization might be possible, but would not yield significant results"
+    #If solution used brute force
+    if j:
+        ws4.cell(row = 2, column = 9).value = "Further optimization was unfortunately not possible and thus these prices are the best 'guesses' reasonably possible"
+    #If solution used diffenv2
+    else:
+        ws4.cell(row = 2, column = 9).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate in this round"
     workbook.save('OptimizedPrices.xlsx')
 
 
 
-# In[16]:
+# In[1154]:
 
 
 print("Program has finished!")
+
+
+# In[1155]:
+
+
+#Optional funsies for those testing with the notebook!
+
+#print(" Construction stuff. The smaller the result and penalty, the better")
+#print(con_objective(con_result))
+#print(con_penalty(con_result))
+
+#print("\n Labor stuff. The smaller the result and penalty, the better")
+#print(lab_objective(lab_result))
+#print(lab_penalty(lab_result))
+
+#print("Improvement compared to initial guess: ")
+
+#print("\nConstruction objective: ")
+#print(con_objective(con_try)-con_objective(con_result))
+#print("\nConstruction penalty: ")
+#print(con_penalty(con_try)-con_penalty(con_result))
+#print("\nLabor objective: ")
+#print(lab_objective(lab_try)-lab_objective(lab_result))
+#print("\nLabor penalty: ")
+#print(lab_penalty(lab_try)-lab_penalty(lab_result))
+
+
+# In[ ]:
+
+
+
 
