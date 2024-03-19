@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[379]:
+# In[1]:
 
 
 from scipy.optimize import linprog
@@ -17,7 +17,7 @@ from mystic.monitors import VerboseMonitor
 from openpyxl import load_workbook
 
 
-# In[380]:
+# In[2]:
 
 
 # IF YOU DON'T WANT TO EDIT ANYTHING, THEN JUST PRESS 'RUN' AT THE TOP BAR, SELECT 'RUN ALL CELLS', AND SCROLL TO THE BOTTOM FOR RESULTS!!
@@ -37,7 +37,7 @@ GOODSNAMES.sort()
 MAX_NUMBER_ITERATIONS = 30000
 
 
-# In[381]:
+# In[3]:
 
 
 #Import the Excel sheet containing the buildings/PMs used to produce each good
@@ -51,7 +51,7 @@ df = data[data['Included'].astype(str).str.contains("1")]
 
 
 
-# In[382]:
+# In[4]:
 
 
 #Construct the matrices needed for creating our linear minimizing problem (maths stuff)
@@ -84,7 +84,7 @@ df_out=df.filter(like='Out', axis=1)
 t_bonuses=1+df['TBonus'].values
 
 
-# In[383]:
+# In[5]:
 
 
 #Code for the function which preps all the math so that we can perform optimization!
@@ -133,7 +133,7 @@ def optimization_function(scalar_factors, inp, out, tbonus):
     return c, A, rhs
 
 
-# In[384]:
+# In[6]:
 
 
 #Calling the function for both construction and labor! Feel free to comment the other out if you're not insterested in the results
@@ -143,7 +143,7 @@ c_con, A_con, rhs_con = optimization_function(scalar_factors_construction, df_in
 c_lab, A_lab, rhs_lab = optimization_function(scalar_factors_labor, df_inp, df_out, t_bonuses)
 
 
-# In[385]:
+# In[7]:
 
 
 #Creating the bounds for each good
@@ -158,7 +158,7 @@ for bp in BASEPRICES:
 #print(boundaries)
 
 
-# In[386]:
+# In[8]:
 
 
 #Linear optimization if it's possible!
@@ -177,7 +177,7 @@ lab_result=res_lab.x
 
 
 
-# In[387]:
+# In[9]:
 
 
 #Transforming a row in an A-matrix to be usable by mystic as constraints
@@ -200,7 +200,7 @@ lab_result=res_lab.x
 #    return first, x
 
 
-# In[388]:
+# In[10]:
 
 
 #Constraints for mystic - This is all deprecated as the amount of constraints bricks the solver on normal PCs
@@ -236,7 +236,7 @@ lab_result=res_lab.x
 
 
 
-# In[389]:
+# In[11]:
 
 
 #Initializing problem and variables (this is from an old try at PULP... Just so happens that the dictionary is useful!)
@@ -298,7 +298,7 @@ else:
         k=True
 
 
-# In[390]:
+# In[12]:
 
 
 #Same calcs for labor
@@ -354,7 +354,7 @@ else:
         j=True
 
 
-# In[391]:
+# In[13]:
 
 
 #Making the optimal prices per construction more readable
@@ -376,7 +376,7 @@ if not res_con.success:
 readable_df.sort_values('Good')
 
 
-# In[392]:
+# In[14]:
 
 
 #Making the optimal prices per labor more readable
@@ -401,7 +401,7 @@ if not res_lab.success:
 readable_df2.sort_values('Good')
 
 
-# In[393]:
+# In[15]:
 
 
 #Writing the results into an Excel-sheet for the purposes of an .exe
@@ -415,16 +415,14 @@ workbook = load_workbook(filename='OptimizedPrices.xlsx')
 ws4 = workbook['Optimized for construction']
 for i in range(len(c_con)):
     if c_con[i] == 0:
-        for m in range(4,6):
-            ws4.cell(row = i+2, column = m).value = 'Not included'
+        ws4.cell(row = i+2, column = 7).value = 'Does not affect net value added'
 workbook.save('OptimizedPrices.xlsx')
 
 workbook = load_workbook(filename='OptimizedPrices.xlsx')
 ws4 = workbook['Optimized for labor']
 for i in range(len(c_lab)):
     if c_lab[i] == 0:
-        for m in range(4,6):
-            ws4.cell(row = i+2, column = m).value = 'Not included'
+        ws4.cell(row = i+2, column = 7).value = 'Does not affect net value added'
 workbook.save('OptimizedPrices.xlsx')
 
 
@@ -434,9 +432,9 @@ if not res_con.success:
     workbook = load_workbook(filename='OptimizedPrices.xlsx')
     ws4 = workbook['Optimized for construction']
     if k:
-        ws4.cell(row = 2, column = 7).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
+        ws4.cell(row = 2, column = 9).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
     else:
-        ws4.cell(row = 2, column = 7).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
+        ws4.cell(row = 2, column = 9).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
 
     workbook.save('OptimizedPrices.xlsx')
 
@@ -444,41 +442,15 @@ if not res_lab.success:
     workbook = load_workbook(filename='OptimizedPrices.xlsx')
     ws4 = workbook['Optimized for labor']
     if j:
-        ws4.cell(row = 2, column = 7).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
+        ws4.cell(row = 2, column = 9).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
     else:
-        ws4.cell(row = 2, column = 7).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
+        ws4.cell(row = 2, column = 9).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
     workbook.save('OptimizedPrices.xlsx')
 
 
 
-# In[394]:
+# In[16]:
 
 
-print(np.dot(c_con, con_result))
-
-print(np.dot(c_lab, lab_result))
-
-
-# In[395]:
-
-
-testingtemp = BASEPRICES
-
-testingtemp[3] = 30.5
-testingtemp[19] = 38
-testingtemp[33] = 13.5
-testingtemp[35] = 73
-testingtemp[41] = 45
-
-print(np.dot(c_con, testingtemp))
-
-print(con_penalty(con_result))
-
-print(con_penalty(testingtemp))
-
-
-# In[ ]:
-
-
-
+print("Program has finished!")
 
