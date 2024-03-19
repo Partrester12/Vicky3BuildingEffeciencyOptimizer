@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[155]:
+# In[379]:
 
 
 from scipy.optimize import linprog
@@ -17,7 +17,7 @@ from mystic.monitors import VerboseMonitor
 from openpyxl import load_workbook
 
 
-# In[156]:
+# In[380]:
 
 
 # IF YOU DON'T WANT TO EDIT ANYTHING, THEN JUST PRESS 'RUN' AT THE TOP BAR, SELECT 'RUN ALL CELLS', AND SCROLL TO THE BOTTOM FOR RESULTS!!
@@ -34,10 +34,10 @@ GOODSNAMES = ["Soft wood","Hard wood","Iron","Coal","Tools","Steel","Fertilizer"
 GOODSNAMES.sort()
 
 #This is the one exception! Change this if you feel like results are taking FOREVER
-MAX_NUMBER_ITERATIONS = 25000
+MAX_NUMBER_ITERATIONS = 30000
 
 
-# In[157]:
+# In[381]:
 
 
 #Import the Excel sheet containing the buildings/PMs used to produce each good
@@ -51,7 +51,7 @@ df = data[data['Included'].astype(str).str.contains("1")]
 
 
 
-# In[158]:
+# In[382]:
 
 
 #Construct the matrices needed for creating our linear minimizing problem (maths stuff)
@@ -61,9 +61,10 @@ df = data[data['Included'].astype(str).str.contains("1")]
 #Also taking into account potential construction bonuses (aka companies)
 scalar_per_construction=df['Construction'].values*(1-df['ConBonus'].values)
 
-a = np.lcm.reduce(scalar_per_construction.astype(np.int64))
+#Least common multiplier to make everything into integers
+con_lcm = np.lcm.reduce(scalar_per_construction.astype(np.int64))
 
-scalar_factors_construction=a*np.reciprocal(scalar_per_construction)
+scalar_factors_construction=con_lcm*np.reciprocal(scalar_per_construction)
 
 #Change this if you want to change per how many pops you optimize for
 per_labor = 100
@@ -71,18 +72,19 @@ per_labor = 100
 #Calculating the scalar factor for outputs and inputs when optimizing for labor
 scalar_per_labor=df['Labor'].values/per_labor
 
-a = np.lcm.reduce(scalar_per_labor.astype(np.int64))
+#Least common multiplier to make everything into integers
+lab_lcm = np.lcm.reduce(scalar_per_labor.astype(np.int64))
 
-scalar_factors_labor=a*np.reciprocal(scalar_per_labor)
+scalar_factors_labor=lab_lcm*np.reciprocal(scalar_per_labor)
 
 #Separating the inputs and outputs of all buildings included
 df_inp=df.filter(like='Inp', axis=1)
 df_out=df.filter(like='Out', axis=1)
 #Taking into account potential throughput bonuses
-output_bonuses=1+df['TBonus'].values
+t_bonuses=1+df['TBonus'].values
 
 
-# In[159]:
+# In[383]:
 
 
 #Code for the function which preps all the math so that we can perform optimization!
@@ -94,6 +96,7 @@ def optimization_function(scalar_factors, inp, out, tbonus):
     #Otherwise we couldn't make constraits like logging camps eq.eff. is equal to eq.eff. of steel mills (they have different construction)
     inp=inp.mul(scalar_factors, axis=0).astype(int)
     out=out.mul(scalar_factors, axis=0).astype(int)
+    inp=inp.mul(tbonus, axis=0).astype(int)
     out=out.mul(tbonus, axis=0).astype(int)
     
     #print(df_out)
@@ -130,17 +133,17 @@ def optimization_function(scalar_factors, inp, out, tbonus):
     return c, A, rhs
 
 
-# In[160]:
+# In[384]:
 
 
 #Calling the function for both construction and labor! Feel free to comment the other out if you're not insterested in the results
 
-c_con, A_con, rhs_con = optimization_function(scalar_factors_construction, df_inp, df_out, output_bonuses)
+c_con, A_con, rhs_con = optimization_function(scalar_factors_construction, df_inp, df_out, t_bonuses)
 
-c_lab, A_lab, rhs_lab = optimization_function(scalar_factors_labor, df_inp, df_out, output_bonuses)
+c_lab, A_lab, rhs_lab = optimization_function(scalar_factors_labor, df_inp, df_out, t_bonuses)
 
 
-# In[161]:
+# In[385]:
 
 
 #Creating the bounds for each good
@@ -155,7 +158,7 @@ for bp in BASEPRICES:
 #print(boundaries)
 
 
-# In[162]:
+# In[386]:
 
 
 #Linear optimization if it's possible!
@@ -164,17 +167,17 @@ for bp in BASEPRICES:
 
 res_con=linprog(c_con, A_eq=A_con, b_eq=rhs_con, bounds=boundaries)
 #print(res_con.success)
-#print(c_con)
+#print(res_con)
 con_result=res_con.x
 
 res_lab=linprog(c_lab, A_eq=A_lab, b_eq=rhs_lab, bounds=boundaries)
 #print(res_lab)
-#print(c_lab)
+#print(res_lab)
 lab_result=res_lab.x
 
 
 
-# In[163]:
+# In[387]:
 
 
 #Transforming a row in an A-matrix to be usable by mystic as constraints
@@ -197,7 +200,7 @@ lab_result=res_lab.x
 #    return first, x
 
 
-# In[164]:
+# In[388]:
 
 
 #Constraints for mystic - This is all deprecated as the amount of constraints bricks the solver on normal PCs
@@ -233,7 +236,7 @@ lab_result=res_lab.x
 
 
 
-# In[165]:
+# In[389]:
 
 
 #Initializing problem and variables (this is from an old try at PULP... Just so happens that the dictionary is useful!)
@@ -245,7 +248,7 @@ x = pulp.LpVariable.dicts("x", range(len(BASEPRICES)), cat="Continuous")
 
 
 #Switching to mystic....
-mon = VerboseMonitor(10)
+con_mon = VerboseMonitor(10)
 
 #Objective function which we want to minimize
 def con_objective(x):
@@ -264,14 +267,19 @@ def con_penalty(x):
     #Return the maximum difference in all eq.eff. scores found
     return max
 
-@mystic.penalty.linear_equality(con_penalty)
-def penalty(x):
+@mystic.penalty.quadratic_equality(con_penalty)
+def mystic_penalty_con(x):
     return 0.0
 
 #If linear optimization not possible, try global optimization with diffev2
 
 if not res_con.success:
-    con_result = diffev2(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=penalty, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+    #If linear optimization not possible, then revert multiplying by lcm as we don't need to have everything be integers anymore
+    A_con=np.divide(A_con, con_lcm)
+    #And because we formed the objective function by adding together things multiplied by lcm, we need to also divide an additional amount
+    c_con=np.divide(c_con, con_lcm*len(t_bonuses))
+    #Trying global optimization
+    con_result = diffev2(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=con_mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
 
 #If global optimization is not possible for one reason or another, try and brute force the best possible solution in a reasonable time frame
 
@@ -280,19 +288,23 @@ k=False
 if(len(con_result)==len(BASEPRICES)):
     if(np.array_equal(con_result, BASEPRICES)):
         print("Brute force")
-        con_result = fmin(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=penalty, itermon=mon, npop=100, maxiter=MAX_NUMBER_ITERATIONS, maxfun=MAX_NUMBER_ITERATIONS)
+        con_result = fmin(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
         k=True
 else:
-    if(np.array_equal(con_result[0], BASEPRICES)):
+    #If mystic bugs out and tries to pass some arbitrary values as optimal
+    if(con_result[3]==0):
         print("Brute force")
-        con_result = fmin(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=penalty, itermon=mon, npop=100, maxiter=MAX_NUMBER_ITERATIONS, maxfun=MAX_NUMBER_ITERATIONS)
+        con_result = fmin(con_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
         k=True
 
 
-# In[166]:
+# In[390]:
 
 
 #Same calcs for labor
+
+
+lab_mon = VerboseMonitor(10)
 
 #Objective function which we want to minimize
 def lab_objective(x):
@@ -311,14 +323,19 @@ def lab_penalty(x):
     #Return the maximum difference in all eq.eff. scores found
     return max
 
-@mystic.penalty.linear_equality(lab_penalty)
-def penalty(x):
+@mystic.penalty.quadratic_equality(lab_penalty)
+def mystic_penalty_lab(x):
     return 0.0
 
 #If linear optimization not possible, try global optimization with diffev2
 
 if not res_lab.success:
-    lab_result = diffev2(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=penalty, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
+    #If linear optimization not possible, then revert multiplying by lcm as we don't need to have everything be integers anymore
+    A_lab=np.divide(A_lab, lab_lcm)
+    #And because we formed the objective function by adding together things multiplied by lcm, we need to also divide an additional amount
+    c_lab=np.divide(c_lab, lab_lcm*len(t_bonuses))
+    #Trying global optimization
+    lab_result = diffev2(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_lab, itermon=lab_mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
 
 #If global optimization is not possible for one reason or another, try and brute force the best possible solution in a reasonable time frame
 
@@ -327,16 +344,17 @@ j=False
 if(len(lab_result)==len(BASEPRICES)):
     if(np.array_equal(lab_result, BASEPRICES)):
         print("Brute force")
-        lab_result = fmin(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=penalty, itermon=mon, npop=100, maxiter=MAX_NUMBER_ITERATIONS, maxfun=MAX_NUMBER_ITERATIONS)
+        lab_result = fmin(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
         j=True
 else:
-    if(np.array_equal(lab_result[0], BASEPRICES)):
+    #If mystic bugs out and tries to pass some arbitrary values as optimal
+    if(lab_result[3]==0):
         print("Brute force")
-        lab_result = fmin(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=penalty, itermon=mon, npop=100, maxiter=MAX_NUMBER_ITERATIONS, maxfun=MAX_NUMBER_ITERATIONS)
+        lab_result = fmin(lab_objective, x0=BASEPRICES, bounds=boundaries, penalty=mystic_penalty_con, itermon=mon, npop=100, maxfun=MAX_NUMBER_ITERATIONS)
         j=True
 
 
-# In[167]:
+# In[391]:
 
 
 #Making the optimal prices per construction more readable
@@ -358,7 +376,7 @@ if not res_con.success:
 readable_df.sort_values('Good')
 
 
-# In[168]:
+# In[392]:
 
 
 #Making the optimal prices per labor more readable
@@ -383,7 +401,7 @@ if not res_lab.success:
 readable_df2.sort_values('Good')
 
 
-# In[169]:
+# In[393]:
 
 
 #Writing the results into an Excel-sheet for the purposes of an .exe
@@ -391,6 +409,24 @@ readable_df2.sort_values('Good')
 with pd.ExcelWriter('OptimizedPrices.xlsx') as writer:
     readable_df.to_excel(writer, sheet_name='Optimized for construction')
     readable_df2.to_excel(writer, sheet_name='Optimized for labor')
+
+#Marking goods that aren't included in the calculations
+workbook = load_workbook(filename='OptimizedPrices.xlsx')
+ws4 = workbook['Optimized for construction']
+for i in range(len(c_con)):
+    if c_con[i] == 0:
+        for m in range(4,6):
+            ws4.cell(row = i+2, column = m).value = 'Not included'
+workbook.save('OptimizedPrices.xlsx')
+
+workbook = load_workbook(filename='OptimizedPrices.xlsx')
+ws4 = workbook['Optimized for labor']
+for i in range(len(c_lab)):
+    if c_lab[i] == 0:
+        for m in range(4,6):
+            ws4.cell(row = i+2, column = m).value = 'Not included'
+workbook.save('OptimizedPrices.xlsx')
+
 
 #Also writing 'warnings' to the Excel-sheet
 
@@ -401,6 +437,7 @@ if not res_con.success:
         ws4.cell(row = 2, column = 7).value = "Optimization was unfortunately not possible and thus these prices are simply 'guesses' that tend to the right direction"
     else:
         ws4.cell(row = 2, column = 7).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
+
     workbook.save('OptimizedPrices.xlsx')
 
 if not res_lab.success:
@@ -412,6 +449,32 @@ if not res_lab.success:
         ws4.cell(row = 2, column = 7).value = "Note that linear optimization could not be performed and these prices are simply the best your PC and this program could calculate"
     workbook.save('OptimizedPrices.xlsx')
 
+
+
+# In[394]:
+
+
+print(np.dot(c_con, con_result))
+
+print(np.dot(c_lab, lab_result))
+
+
+# In[395]:
+
+
+testingtemp = BASEPRICES
+
+testingtemp[3] = 30.5
+testingtemp[19] = 38
+testingtemp[33] = 13.5
+testingtemp[35] = 73
+testingtemp[41] = 45
+
+print(np.dot(c_con, testingtemp))
+
+print(con_penalty(con_result))
+
+print(con_penalty(testingtemp))
 
 
 # In[ ]:
