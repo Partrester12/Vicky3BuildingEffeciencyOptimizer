@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1139]:
+# In[103]:
 
 
 from scipy.optimize import linprog
@@ -17,7 +17,7 @@ from mystic.monitors import VerboseMonitor
 from openpyxl import load_workbook
 
 
-# In[1140]:
+# In[104]:
 
 
 # IF YOU DON'T WANT TO EDIT ANYTHING, THEN JUST PRESS 'RUN' AT THE TOP BAR, SELECT 'RUN ALL CELLS', AND SCROLL TO THE BOTTOM FOR RESULTS!!
@@ -41,7 +41,7 @@ GOODSNAMES.sort()
 MAX_NUMBER_ITERATIONS = 10000
 
 
-# In[1141]:
+# In[105]:
 
 
 #Import the Excel sheet containing the buildings/PMs used to produce each good
@@ -66,7 +66,7 @@ except:
     print("No existing file found, continuing with base prices as initial guesses in case linear optimization cannot be performed")
 
 
-# In[1142]:
+# In[106]:
 
 
 #Construct the matrices needed for creating our linear minimizing problem (maths stuff)
@@ -74,12 +74,22 @@ except:
 
 #Calculating the scalar factor for outputs and inputs when optimizing for construction
 #Also taking into account potential construction bonuses (aka companies)
-scalar_per_construction=df['Construction'].values*(1-df['ConBonus'].values)
+scalar_per_construction=df['Construction'].values*(1.0-df['ConBonus'].values)
+
+#print((1.0-df['ConBonus'].values))
+
+#print(scalar_per_construction)
 
 #Least common multiplier to make everything into integers
 con_lcm = np.lcm.reduce(scalar_per_construction.astype(np.int64))
 
+#print(con_lcm)
+
 scalar_factors_construction=con_lcm*np.reciprocal(scalar_per_construction)
+
+#print(np.reciprocal(scalar_per_construction))
+
+#print(scalar_factors_construction)
 
 #Change this if you want to change per how many pops you optimize for
 per_labor = 100
@@ -87,10 +97,18 @@ per_labor = 100
 #Calculating the scalar factor for outputs and inputs when optimizing for labor
 scalar_per_labor=df['Labor'].values/per_labor
 
+#print(df['Labor'].values)
+
+#print(scalar_per_labor)
+
 #Least common multiplier to make everything into integers
 lab_lcm = np.lcm.reduce(scalar_per_labor.astype(np.int64))
 
+#print(lab_lcm)
+
 scalar_factors_labor=lab_lcm*np.reciprocal(scalar_per_labor)
+
+#print(scalar_factors_labor)
 
 #Separating the inputs and outputs of all buildings included
 df_inp=df.filter(like='Inp', axis=1)
@@ -99,7 +117,7 @@ df_out=df.filter(like='Out', axis=1)
 t_bonuses=1+df['TBonus'].values
 
 
-# In[1143]:
+# In[107]:
 
 
 #Code for the function which preps all the math so that we can perform optimization!
@@ -123,7 +141,7 @@ def optimization_function(scalar_factors, inp, out, tbonus):
     #print(df_eq_net)
 
     #Creating our function which we will minimize! 
-    #Note: since we actually want to maximize but liner optimization (SciPy) is what it is, we just reverse the function and minimize instead!
+    #Note: since we actually want to maximize but linear optimization (SciPy) is what it is, we just reverse the function and minimize instead!
     
     df_obj_func=df_eq_net.cumsum()*-1
     
@@ -134,21 +152,40 @@ def optimization_function(scalar_factors, inp, out, tbonus):
     #print(c)
 
     #Creating the lhs adn rhs matrices used in our linear optimization problem (also the whole reason this program has been written)
-    #And since we want the eq.eff. to be equal for all buildings, all lhs will naturally equal 0
+    #As long as the eq.eff. are within 1 of each other, the results are valid enough so we use upperbounds and not equalities
+    #Technically it would be better to use equalities, but after ~8 buildings, it becomes infeasible to solve with linear optimization
     
     A=[]
     
     rhs=[]
     
+    #for i in range(len(scalar_factors)):
+    #    for j in range(i+1,len(scalar_factors)):
+    #        A.append(df_eq_net.iloc[i].values-df_eq_net.iloc[j].values)
+    #        rhs.append(1)
+    #        A.append(-df_eq_net.iloc[i].values+df_eq_net.iloc[j].values)
+    #        rhs.append(1)
+    
+    
+    #Testing results with fewer constraints
+    #As we want the eq.eff. to be at most 1 from each other, we create to constraints per equation:
+    #One for <1 and one for >-1. However we can only use <, thus we multiply equation by -1 and get the equivalent equation!
     for i in range(len(scalar_factors)):
-        for j in range(i+1,len(scalar_factors)):
-            A.append(df_eq_net.iloc[i].values-df_eq_net.iloc[j].values)
-            rhs.append(0)
-
+        if i == len(scalar_factors)-1:
+            A.append(df_eq_net.iloc[i].values-df_eq_net.iloc[0].values)
+            rhs.append(1)
+            A.append(-df_eq_net.iloc[i].values+df_eq_net.iloc[0].values)
+            rhs.append(1)
+        else:
+            A.append(df_eq_net.iloc[i].values-df_eq_net.iloc[i+1].values)
+            rhs.append(1)
+            A.append(-df_eq_net.iloc[i].values+df_eq_net.iloc[i+1].values)
+            rhs.append(1)
+    
     return c, A, rhs
 
 
-# In[1144]:
+# In[108]:
 
 
 #Calling the function for both construction and labor! Feel free to comment the other out if you're not insterested in the results
@@ -158,7 +195,7 @@ c_con, A_con, rhs_con = optimization_function(scalar_factors_construction, df_in
 c_lab, A_lab, rhs_lab = optimization_function(scalar_factors_labor, df_inp, df_out, t_bonuses)
 
 
-# In[1145]:
+# In[109]:
 
 
 #Creating the bounds for each good
@@ -173,26 +210,26 @@ for bp in BASEPRICES:
 #print(boundaries)
 
 
-# In[1146]:
+# In[110]:
 
 
 #Linear optimization if it's possible!
 
 #print(c_con)
 
-res_con=linprog(c_con, A_eq=A_con, b_eq=rhs_con, bounds=boundaries)
+res_con=linprog(c_con, A_ub=A_con, b_ub=rhs_con, bounds=boundaries)
 #print(res_con.success)
 #print(res_con)
 con_result=res_con.x
 
-res_lab=linprog(c_lab, A_eq=A_lab, b_eq=rhs_lab, bounds=boundaries)
+res_lab=linprog(c_lab, A_ub=A_lab, b_ub=rhs_lab, bounds=boundaries)
 #print(res_lab)
 #print(res_lab)
 lab_result=res_lab.x
 
 
 
-# In[1147]:
+# In[111]:
 
 
 #Transforming a row in an A-matrix to be usable by mystic as constraints
@@ -215,7 +252,7 @@ lab_result=res_lab.x
 #    return first, x
 
 
-# In[1148]:
+# In[112]:
 
 
 #Constraints for mystic - This is all deprecated as the amount of constraints bricks the solver on normal PCs
@@ -251,15 +288,12 @@ lab_result=res_lab.x
 
 
 
-# In[1149]:
+# In[113]:
 
 
 #Initializing problem and variables (this is from an old try at PULP... Just so happens that the dictionary is useful!)
 prob = LpProblem("construction_problem", LpMinimize)
 x = pulp.LpVariable.dicts("x", range(len(BASEPRICES)), cat="Continuous")
-
-#Testing if smushing the constraints together improves performance
-#A_con_opt = 
 
 
 #Switching to mystic....
@@ -272,11 +306,17 @@ def con_objective(x):
 
 #Penalty function for mystic. Essentially tries to make all eq.eff. scores to be equal, but not exactly since it's impossible on normal PCs
 
+#As we use absolute values in the penalty function, we can get rid of half of the constraints!
+A_con_penalty = []
+for i in range(0, len(A_con), 2):
+    A_con_penalty.append(A_con[i])
+
 def con_penalty(x):
     max=0;
     #Loop through all constraints and find out the maximum deviation amongst eq.eff. scores
-    for co in A_con:
-        a=abs(np.dot(co,x))  
+    for co in A_con_penalty:
+        a=abs(np.dot(co,x))
+        
         if a > max:
             max = a
     #Return the maximum difference in all eq.eff. scores found
@@ -290,7 +330,7 @@ def mystic_penalty_con(x):
 
 if not res_con.success:
     #If linear optimization not possible, then revert multiplying by lcm as we don't need to have everything be integers anymore
-    A_con=np.divide(A_con, con_lcm)
+    A_con_penalty=np.divide(A_con_penalty, con_lcm)
     #And because we formed the objective function by adding together things multiplied by lcm, we need to also divide an additional amount
     c_con=np.divide(c_con, con_lcm*len(t_bonuses))
     #Trying global optimization
@@ -315,7 +355,7 @@ else:
         k=True
 
 
-# In[1150]:
+# In[114]:
 
 
 #Same calcs for labor
@@ -330,10 +370,15 @@ def lab_objective(x):
 
 #Penalty function for mystic. Essentially tries to make all eq.eff. scores to be equal, but not exactly since it's impossible on normal PCs
 
+#As we use absolute values in the penalty function, we can get rid of half of the constraints!
+A_lab_penalty = []
+for i in range(0, len(A_lab), 2):
+    A_lab_penalty.append(A_lab[i])
+
 def lab_penalty(x):
     max=0;
     #Loop through all constraints and find out the maximum deviation amongst eq.eff. scores
-    for co in A_lab:
+    for co in A_lab_penalty:
         a=abs(np.dot(co,x))  
         if a > max:
             max = a
@@ -348,7 +393,7 @@ def mystic_penalty_lab(x):
 
 if not res_lab.success:
     #If linear optimization not possible, then revert multiplying by lcm as we don't need to have everything be integers anymore
-    A_lab=np.divide(A_lab, lab_lcm)
+    A_lab_penalty=np.divide(A_lab_penalty, lab_lcm)
     #And because we formed the objective function by adding together things multiplied by lcm, we need to also divide an additional amount
     c_lab=np.divide(c_lab, lab_lcm*len(t_bonuses))
     #Trying global optimization
@@ -373,7 +418,7 @@ else:
         j=True
 
 
-# In[1151]:
+# In[115]:
 
 
 #Making the optimal prices per construction more readable
@@ -395,7 +440,7 @@ if not res_con.success:
 readable_df.sort_values('Good')
 
 
-# In[1152]:
+# In[116]:
 
 
 #Making the optimal prices per labor more readable
@@ -420,7 +465,7 @@ if not res_lab.success:
 readable_df2.sort_values('Good')
 
 
-# In[1153]:
+# In[117]:
 
 
 #Writing the results into an Excel-sheet for the purposes of an .exe
@@ -482,13 +527,13 @@ if not res_lab.success:
 
 
 
-# In[1154]:
+# In[118]:
 
 
 print("Program has finished!")
 
 
-# In[1155]:
+# In[119]:
 
 
 #Optional funsies for those testing with the notebook!
@@ -501,17 +546,29 @@ print("Program has finished!")
 #print(lab_objective(lab_result))
 #print(lab_penalty(lab_result))
 
+
 #print("Improvement compared to initial guess: ")
 
-#print("\nConstruction objective: ")
-#print(con_objective(con_try)-con_objective(con_result))
-#print("\nConstruction penalty: ")
-#print(con_penalty(con_try)-con_penalty(con_result))
-#print("\nLabor objective: ")
-#print(lab_objective(lab_try)-lab_objective(lab_result))
-#print("\nLabor penalty: ")
-#print(lab_penalty(lab_try)-lab_penalty(lab_result))
-
+#print("Construction objective: ")
+cobj=con_objective(con_try)-con_objective(con_result)
+if cobj!=0:
+#print(cobj)
+    print("Construction objective improvement of about: "+str(round(-(cobj/con_objective(con_try))*100,4))+"%")
+#print("Construction penalty: ")
+copen=con_penalty(con_try)-con_penalty(con_result)
+if copen!=0:
+#print(copen)
+    print("Construction penalty improvement of about: "+str(round((copen/con_penalty(con_try))*100,4))+"%")
+#print("Labor objective: ")
+lobj=lab_objective(lab_try)-lab_objective(lab_result)
+if lobj!=0:
+#print(lobj)
+    print("Labor objective improvement of about: "+str(round(-(lobj/lab_objective(lab_try))*100,4))+"%")
+#print("Labor penalty: ")
+lpen=lab_penalty(lab_try)-lab_penalty(lab_result)
+if lpen!=0:
+#print(lpen)
+    print("Labor penalty improvement of about: "+str(round((lpen/lab_penalty(lab_try))*100,4))+"%")
 
 # In[ ]:
 
