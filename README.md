@@ -5,7 +5,7 @@ Inspired by Generalist Gaming's spreadsheet, here's a program which can mathemat
 
 Download for Windows: https://www.mediafire.com/file/cpuxnf8r6emvv28/Vicky3_BEO_Windows.zip/file
 
-Download for Linux (only Ubuntu tested): https://www.mediafire.com/file/i0kl1a85a2e7ysc/Vicky3_BEO_Ubuntu.zip/file
+Download for Linux (only Ubuntu tested): [https://www.mediafire.com/file/i0kl1a85a2e7ysc/Vicky3_BEO_Ubuntu.zip/file](https://www.mediafire.com/file/yync320dnzcjgmd/Vicky3_BEO_2.zip/file)
 
 As of Version 2.0, there is a full on GUI for using the program! Below are a couple of instructions for using the program:
 
