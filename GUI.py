@@ -1,11 +1,12 @@
 import subprocess
+from threading import Thread
 import time
 import tkinter
 import customtkinter
 import functools
 from openpyxl import load_workbook
 from openpyxl.styles.numbers import FORMAT_PERCENTAGE_00
-from openpyxl.styles.numbers import FORMAT_NUMBER_00
+import OptimizeBuildings
 
 #System settings
 customtkinter.set_appearance_mode("System")
@@ -156,14 +157,10 @@ def BEOFunctionality():
 #Launching OptimizeBuildings.py and printing status messages to statusLabel
 def CalculateOptimalPrices():
 
-    pricingProcess = subprocess.Popen(['python', 'OptimizeBuildings.py'], stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
-    for line in pricingProcess.stdout:
-        app.update()
-        currentText = statusText.get()
-        if currentText.count('\n')>8:
-            currentText = currentText.split('\n',currentText.count('\n')-8)[currentText.count('\n')-8]
-        statusText.set(currentText+'\n'+line)
-        app.update()
+    #Switched to threading since it makes things easier for people without Python installed
+    pricingProcess = Thread(target=OptimizeBuildings.OptimizePrices(app, statusText))
+    pricingProcess.start()
+    pricingProcess.join()
 
     
 #Showing prices in the OptimizedPrices worksheet
@@ -266,8 +263,6 @@ throughputLabel.grid(row=0, column=6, padx=5)
 
 constructionLabel = customtkinter.CTkLabel(scrollFrame, width=50, height=50, text="ConBonus %")
 constructionLabel.grid(row=0, column=7)
-
-
 
 
 # Run app
