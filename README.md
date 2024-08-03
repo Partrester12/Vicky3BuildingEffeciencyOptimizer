@@ -3,7 +3,7 @@ Inspired by Generalist Gaming's spreadsheet, here's a program which can mathemat
 
 # If you don't want to edit the program or touch the code, then download the latest version of the program here and read the instructions included
 
-Download for Windows: https://www.mediafire.com/file/cpuxnf8r6emvv28/Vicky3_BEO_Windows.zip/file
+Download for Windows: [https://www.mediafire.com/file/cpuxnf8r6emvv28/Vicky3_BEO_Windows.zip/file](https://www.mediafire.com/file/yf98tugdqq07zk1/Vicky3_BEO_Windows_2.zip/file)
 
 Download for Linux (only Ubuntu tested): [https://www.mediafire.com/file/i0kl1a85a2e7ysc/Vicky3_BEO_Ubuntu.zip/file](https://www.mediafire.com/file/yync320dnzcjgmd/Vicky3_BEO_2.zip/file)
 
